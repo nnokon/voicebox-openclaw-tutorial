@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw + Voicebox 本地 TTS 配置教程</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .language-toggle {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid white;
+        }
+
+        .language-toggle button {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .language-toggle button.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .language-toggle button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 40px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .language-section {
+            display: none;
+        }
+
+        .language-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        h4 {
+            color: #764ba2;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+
+        p {
+            line-height: 1.8;
+            margin-bottom: 12px;
+            color: #555;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+            line-height: 1.8;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            overflow-x: auto;
+            border-left: 4px solid #667eea;
+        }
+
+        pre code {
+            color: inherit;
+            padding: 0;
+            background: none;
+        }
+
+        .note, .warning, .tip, .success, .caution {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+            background-color: #f8f9fa;
+        }
+
+        .warning {
+            border-left-color: #ff9800;
+            background-color: #fff3e0;
+        }
+
+        .tip {
+            border-left-color: #4caf50;
+            background-color: #e8f5e9;
+        }
+
+        .success {
+            border-left-color: #4caf50;
+            background-color: #e8f5e9;
+        }
+
+        .caution {
+            border-left-color: #f44336;
+            background-color: #ffebee;
+        }
+
+        .note {
+            border-left-color: #2196f3;
+            background-color: #e3f2fd;
+        }
+
+        .note strong, .warning strong, .tip strong, .success strong, .caution strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table tr:hover {
+            background: #f5f5f5;
+        }
+
+        a {
+            color: #667eea;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .divider {
+            margin: 30px 0;
+            border: none;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        footer {
+            background: #f8f9fa;
+            padding: 20px 40px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .language-toggle {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .content {
+                padding: 20px;
+                max-height: 60vh;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="main-title">OpenClaw + Voicebox 本地 TTS 配置教程</h1>
+            <div class="language-toggle">
+                <button class="lang-btn active" data-lang="zh">🇨🇳 中文</button>
+                <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 中文内容 -->
+            <div class="language-section active" id="zh-content">
+                <h2>OpenClaw 本地 AI 语音配置完全指南</h2>
+                <p>本教程将指导你使用 Voicebox + 自定义代理实现 OpenClaw 的本地 TTS（文本转语音）功能，支持声音克隆。</p>
+
+                <h2>前置条件</h2>
+                <p>在开始之前，请确保你已经准备好以下内容：</p>
+                <ul>
+                    <li>✅ <strong>OpenClaw</strong> - AI 助手应用</li>
+                    <li>✅ <strong>AI 模型</strong> - 例如 Kimi 等任意模型</li>
+                    <li>✅ <strong>Python 环境</strong> - 用于运行代理服务</li>
+                    <li>✅ <strong>FastAPI & Uvicorn</strong> - Python web 框架（安装：<code>pip install fastapi uvicorn requests</code>）</li>
+                </ul>
+
+                <h2>阶段 1: 安装和配置 Voicebox</h2>
+
+                <h3>第1步：下载 Voicebox</h3>
+                <p>访问 <a href="https://github.com/jamiepine/voicebox" target="_blank">Voicebox GitHub</a> 下载最新版本。</p>
+
+                <h3>第2步：下载 TTS 模型</h3>
+                <p>从 <a href="https://huggingface.co" target="_blank">Hugging Face</a> 手动下载 Qwen 的 TTS 模型。</p>
+
+                <h3>第3步：配置 Voicebox 启动参数</h3>
+                <p>启动 Voicebox 应用后，在设置中勾选以下两项：</p>
+                <ol>
+                    <li><strong>Keep server running when app closes</strong> - 保持后台服务运行</li>
+                    <li><strong>Allow network access</strong> - 允许网络访问</li>
+                </ol>
+                <div class="warning">
+                    <strong>⚠️ 重要提示</strong>
+                    这两项设置对正常使用至关重要，不可遗漏。
+                </div>
+
+                <hr class="divider">
+
+                <h2>阶段 2: 声音克隆（可选但推荐）</h2>
+                <p>如果你想使用特定人物的声音，需要准备：</p>
+                <ul>
+                    <li>📁 <strong>音频文件</strong> - 一段干净、清晰的语音样本</li>
+                    <li>📝 <strong>音频台词</strong> - 该音频的完整文字内容</li>
+                </ul>
+
+                <h3>获取音频样本</h3>
+
+                <h4>方法一：从 Fish Audio 提取（推荐）</h4>
+                <p>Fish Audio 上有丰富的语音样本库，你可以直接提取音频：</p>
+                <ol>
+                    <li>访问 <a href="https://www.fish-audio.com/" target="_blank">Fish Audio</a> 找到想要的声音片段</li>
+                    <li>打开浏览器开发者工具（按 <code>F12</code>）</li>
+                    <li>切换到 <strong>网络（Network）</strong> 标签页</li>
+                    <li><strong>刷新页面</strong>（Ctrl + R 或 Cmd + R）</li>
+                    <li>在网络请求中筛选 <strong>媒体（Media）</strong> 类型</li>
+                    <li>找到对应的 <code>.mp3</code> 文件，右键 → <strong>在新标签页中打开</strong> 或 <strong>另存为</strong></li>
+                </ol>
+                <div class="tip">
+                    <strong>💡 获取台词</strong>
+                    复制页面中展示的文字内容作为该音频的台词，这样克隆效果会更好。
+                </div>
+
+                <h4>方法二：使用本地录音</h4>
+                <p>如果是你自己或朋友的声音，直接录制一段清晰的语音样本（推荐 10-30 秒）。</p>
+
+                <p style="margin-top: 20px;">在 Voicebox 中完成声音克隆过程，系统会生成一个唯一的 <strong>Profile ID</strong>。</p>
+
+                <h3>获取 Profile ID</h3>
+                <p>Voicebox 运行在 <code>http://127.0.0.1:17493</code> 端口，访问以下地址查看已克隆的模型：</p>
+                <pre><code>http://localhost:17493/profiles</code></pre>
+                <div class="caution">
+                    <strong>⚠️ 注意</strong>
+                    记下模型的 <strong>ID</strong>，而不是 Name。后续配置时需要使用 ID。
+                </div>
+
+                <hr class="divider">
+
+                <h2>阶段 3: 创建 TTS 代理服务</h2>
+
+                <h3>第4步：创建 Python 脚本</h3>
+                <p>创建文件 <code>voicebox_proxy.py</code>，内容如下：</p>
+                <pre><code>from fastapi import FastAPI, Request
+from fastapi.responses import Response
+import requests
+import base64
+import uvicorn
+
+app = FastAPI()
+
+VOICEBOX_URL = "http://localhost:17493/generate"
+PROFILE_ID = "这里填上对应克隆语音的id"  # ← 替换为你的 Profile ID
+
+@app.post("/v1/audio/speech")
+async def tts(request: Request):
+    data = await request.json()
+    text = data.get("input", "")
+
+    payload = {
+        "text": text,
+        "profile_id": PROFILE_ID,
+        "language": "en"  # 可选：支持其他语言，如 "zh"
+    }
+
+    resp = requests.post(VOICEBOX_URL, json=payload, timeout=30)
+    resp_json = resp.json()
+
+    # Voicebox 返回 BASE64 编码的音频
+    audio_base64 = resp_json.get("audio", "")
+    audio_bytes = base64.b64decode(audio_base64)
+
+    return Response(content=audio_bytes, media_type="audio/mpeg")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8880)</code></pre>
+
+                <h3>第5步：启动代理服务</h3>
+                <pre><code>python voicebox_proxy.py</code></pre>
+                <p>服务将在 <code>http://localhost:8880</code> 启动。</p>
+
+                <hr class="divider">
+
+                <h2>阶段 4: 配置 OpenClaw</h2>
+
+                <h3>第6步：配置 TTS 设置</h3>
+                <p>在终端中执行以下命令配置 OpenClaw：</p>
+                <pre><code>openclaw config set messages.tts.auto "always"
+openclaw config set messages.tts.provider "openai"
+openclaw config set messages.tts.openai.apiKey "sk-随便填"
+openclaw config set messages.tts.openai.baseUrl "http://localhost:8880/v1"
+openclaw config set messages.tts.openai.model "tts-1"
+openclaw config set messages.tts.openai.voice "default"
+openclaw gateway restart</code></pre>
+
+                <div class="tip">
+                    <strong>💡 参数说明</strong>
+                    <ul>
+                        <li><code>auto: "always"</code> - 每条回复都生成语音（适合讲故事场景）</li>
+                        <li><code>auto: "tagged"</code> - 仅生成标记为 TTS 的内容</li>
+                        <li><code>apiKey</code> - 可随意填写，代理会忽略</li>
+                        <li><code>voice</code> - 字段会被忽略，使用 Profile ID 控制</li>
+                    </ul>
+                </div>
+
+                <h3>第7步：在 OpenClaw 中使用 TTS</h3>
+                <p>如果将 <code>tts.auto</code> 设置为 <code>tagged</code>，使用以下格式标记需要语音的文本：</p>
+                <pre><code>[[tts:text]]这里放你要朗读的文字[[/tts:text]]</code></pre>
+
+                <hr class="divider">
+
+                <h2>阶段 5: 测试和验证</h2>
+
+                <h3>第8步：测试音频生成</h3>
+                <p>在终端中执行以下 curl 命令测试代理是否正常工作：</p>
+                <pre><code>curl -X POST "http://localhost:8880/v1/audio/speech" \
+  -H "Content-Type: application/json" \
+  -d "{\"input\":\"Hello world\"}" \
+  --output test.mp3</code></pre>
+
+                <h3>第9步：验证输出</h3>
+                <ol>
+                    <li>检查 <code>test.mp3</code> 是否已在 Voicebox 处理队列中</li>
+                    <li>在文件资源管理器中打开 <code>test.mp3</code></li>
+                    <li>确认音频能正常播放</li>
+                </ol>
+
+                <div class="success">
+                    <strong>✅ 成功标志</strong>
+                    能够正常播放生成的 MP3 文件，说明整个流程配置正确。
+                </div>
+
+                <hr class="divider">
+
+                <h2>阶段 6: 可选 - 开机自启动</h2>
+
+                <h3>第10步：创建启动脚本</h3>
+                <p>创建文件 <code>start_tts.bat</code>：</p>
+                <pre><code>@echo off
+echo 正在启动 Voicebox + 代理...
+
+:: 修改为你的 Voicebox.exe 完整路径
+start "" /min "D:\Voicebox\Voicebox.exe"
+
+timeout /t 8 >nul     :: 等待 8 秒让 Voicebox 完全启动
+
+:: 修改为你的 voicebox_proxy.py 完整路径
+start "" /min cmd /c "python D:\tts\voicebox_proxy.py"
+
+echo 启动完成！（窗口会自动最小化）</code></pre>
+
+                <div class="note">
+                    <strong>📝 路径修改</strong>
+                    根据你的实际安装位置修改：
+                    <ul>
+                        <li><code>D:\Voicebox\Voicebox.exe</code> → 你的 Voicebox 应用路径</li>
+                        <li><code>D:\tts\voicebox_proxy.py</code> → 你的代理脚本路径</li>
+                    </ul>
+                </div>
+
+                <h3>第11步：添加到系统启动</h3>
+                <ol>
+                    <li>按 <code>Win + R</code> 打开运行对话框</li>
+                    <li>输入 <code>shell:startup</code> 并回车（打开"启动"文件夹）</li>
+                    <li>将 <code>start_tts.bat</code> 拖入或复制到此文件夹</li>
+                </ol>
+
+                <p style="margin-top: 15px;"><strong>✅ 完成！</strong>系统重启后，Voicebox 和代理服务将自动启动。</p>
+
+                <hr class="divider">
+
+                <h2>故障排查</h2>
+                <table>
+                    <tr>
+                        <th>问题</th>
+                        <th>解决方案</th>
+                    </tr>
+                    <tr>
+                        <td>代理无法连接 Voicebox</td>
+                        <td>检查 Voicebox 是否运行，确认端口 17493 可访问</td>
+                    </tr>
+                    <tr>
+                        <td>生成的音频质量差</td>
+                        <td>在 Voicebox 中重新克隆声音，确保输入音频清晰</td>
+                    </tr>
+                    <tr>
+                        <td>OpenClaw 未生成语音</td>
+                        <td>运行测试 curl 命令，检查代理是否正常响应</td>
+                    </tr>
+                    <tr>
+                        <td>启动脚本失效</td>
+                        <td>检查路径是否正确，确保 Python 环境可用</td>
+                    </tr>
+                </table>
+
+                <h2>相关链接</h2>
+                <ul>
+                    <li>🔗 <a href="https://github.com/jamiepine/voicebox" target="_blank">Voicebox GitHub</a></li>
+                    <li>🔗 <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base/tree/main" target="_blank">Hugging Face TTS 模型</a></li>
+                    <li>🔗 <a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI 文档</a></li>
+                    <li>🔗 <a href="https://www.fish-audio.com/" target="_blank">Fish Audio</a></li>
+                </ul>
+            </div>
+
+            <!-- 英文内容 -->
+            <div class="language-section" id="en-content">
+                <h2>OpenClaw Local AI Voice Configuration Complete Guide</h2>
+                <p>This tutorial will guide you through using Voicebox + a custom proxy to enable local TTS (Text-to-Speech) functionality in OpenClaw, with voice cloning support.</p>
+
+                <h2>Prerequisites</h2>
+                <p>Before starting, ensure you have the following:</p>
+                <ul>
+                    <li>✅ <strong>OpenClaw</strong> - AI assistant application</li>
+                    <li>✅ <strong>AI Model</strong> - Such as Kimi or any other model</li>
+                    <li>✅ <strong>Python Environment</strong> - For running the proxy service</li>
+                    <li>✅ <strong>FastAPI & Uvicorn</strong> - Python web framework (Install: <code>pip install fastapi uvicorn requests</code>)</li>
+                </ul>
+
+                <h2>Phase 1: Installing and Configuring Voicebox</h2>
+
+                <h3>Step 1: Download Voicebox</h3>
+                <p>Visit <a href="https://github.com/jamiepine/voicebox" target="_blank">Voicebox GitHub</a> to download the latest version.</p>
+
+                <h3>Step 2: Download TTS Model</h3>
+                <p>Download Qwen's TTS model manually from <a href="https://huggingface.co" target="_blank">Hugging Face</a>.</p>
+
+                <h3>Step 3: Configure Voicebox Startup Parameters</h3>
+                <p>After launching the Voicebox application, check the following two options in Settings:</p>
+                <ol>
+                    <li><strong>Keep server running when app closes</strong> - Keep the background service running</li>
+                    <li><strong>Allow network access</strong> - Allow network access</li>
+                </ol>
+                <div class="warning">
+                    <strong>⚠️ Important</strong>
+                    These two settings are critical for proper operation and cannot be skipped.
+                </div>
+
+                <hr class="divider">
+
+                <h2>Phase 2: Voice Cloning (Optional but Recommended)</h2>
+                <p>If you want to use a specific person's voice, you need to prepare:</p>
+                <ul>
+                    <li>📁 <strong>Audio File</strong> - A clean, clear speech sample</li>
+                    <li>📝 <strong>Audio Transcript</strong> - The complete text content of that audio</li>
+                </ul>
+
+                <h3>Obtaining Audio Samples</h3>
+
+                <h4>Method 1: Extract from Fish Audio (Recommended)</h4>
+                <p>Fish Audio has a rich library of voice samples that you can extract directly:</p>
+                <ol>
+                    <li>Visit <a href="https://www.fish-audio.com/" target="_blank">Fish Audio</a> and find the voice clip you want</li>
+                    <li>Open your browser's developer tools (Press <code>F12</code>)</li>
+                    <li>Switch to the <strong>Network</strong> tab</li>
+                    <li><strong>Refresh the page</strong> (Ctrl + R or Cmd + R)</li>
+                    <li>Filter network requests by <strong>Media</strong> type</li>
+                    <li>Find the corresponding <code>.mp3</code> file, right-click → <strong>Open in new tab</strong> or <strong>Save as</strong></li>
+                </ol>
+                <div class="tip">
+                    <strong>💡 Getting the Transcript</strong>
+                    Copy the text content displayed on the page as the transcript for this audio. This will improve cloning quality.
+                </div>
+
+                <h4>Method 2: Use Local Recording</h4>
+                <p>If it's your own voice or a friend's, simply record a clear speech sample (recommended 10-30 seconds).</p>
+
+                <p style="margin-top: 20px;">Complete the voice cloning process in Voicebox, and the system will generate a unique <strong>Profile ID</strong>.</p>
+
+                <h3>Getting Profile ID</h3>
+                <p>Voicebox runs on the <code>http://127.0.0.1:17493</code> port. Visit the following address to view cloned models:</p>
+                <pre><code>http://localhost:17493/profiles</code></pre>
+                <div class="caution">
+                    <strong>⚠️ Note</strong>
+                    Record the model's <strong>ID</strong>, not the Name. You'll need the ID for subsequent configuration.
+                </div>
+
+                <hr class="divider">
+
+                <h2>Phase 3: Creating the TTS Proxy Service</h2>
+
+                <h3>Step 4: Create Python Script</h3>
+                <p>Create a file named <code>voicebox_proxy.py</code> with the following content:</p>
+                <pre><code>from fastapi import FastAPI, Request
+from fastapi.responses import Response
+import requests
+import base64
+import uvicorn
+
+app = FastAPI()
+
+VOICEBOX_URL = "http://localhost:17493/generate"
+PROFILE_ID = "your-profile-id-here"  # ← Replace with your Profile ID
+
+@app.post("/v1/audio/speech")
+async def tts(request: Request):
+    data = await request.json()
+    text = data.get("input", "")
+
+    payload = {
+        "text": text,
+        "profile_id": PROFILE_ID,
+        "language": "en"  # Optional: supports other languages like "zh"
+    }
+
+    resp = requests.post(VOICEBOX_URL, json=payload, timeout=30)
+    resp_json = resp.json()
+
+    # Voicebox returns BASE64 encoded audio
+    audio_base64 = resp_json.get("audio", "")
+    audio_bytes = base64.b64decode(audio_base64)
+
+    return Response(content=audio_bytes, media_type="audio/mpeg")
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8880)</code></pre>
+
+                <h3>Step 5: Start the Proxy Service</h3>
+                <pre><code>python voicebox_proxy.py</code></pre>
+                <p>The service will start at <code>http://localhost:8880</code>.</p>
+
+                <hr class="divider">
+
+                <h2>Phase 4: Configuring OpenClaw</h2>
+
+                <h3>Step 6: Configure TTS Settings</h3>
+                <p>Execute the following commands in the terminal to configure OpenClaw:</p>
+                <pre><code>openclaw config set messages.tts.auto "always"
+openclaw config set messages.tts.provider "openai"
+openclaw config set messages.tts.openai.apiKey "sk-any-value"
+openclaw config set messages.tts.openai.baseUrl "http://localhost:8880/v1"
+openclaw config set messages.tts.openai.model "tts-1"
+openclaw config set messages.tts.openai.voice "default"
+openclaw gateway restart</code></pre>
+
+                <div class="tip">
+                    <strong>💡 Parameter Explanation</strong>
+                    <ul>
+                        <li><code>auto: "always"</code> - Generate voice for every response (perfect for storytelling)</li>
+                        <li><code>auto: "tagged"</code> - Only generate voice for marked content</li>
+                        <li><code>apiKey</code> - Can be any value, the proxy will ignore it</li>
+                        <li><code>voice</code> - Field is ignored, Profile ID controls the voice</li>
+                    </ul>
+                </div>
+
+                <h3>Step 7: Using TTS in OpenClaw</h3>
+                <p>If you set <code>tts.auto</code> to <code>tagged</code>, use the following format to mark text for voice generation:</p>
+                <pre><code>[[tts:text]]Your text to be read here[[/tts:text]]</code></pre>
+
+                <hr class="divider">
+
+                <h2>Phase 5: Testing and Verification</h2>
+
+                <h3>Step 8: Test Audio Generation</h3>
+                <p>Execute the following curl command in the terminal to test if the proxy is working correctly:</p>
+                <pre><code>curl -X POST "http://localhost:8880/v1/audio/speech" \
+  -H "Content-Type: application/json" \
+  -d "{\"input\":\"Hello world\"}" \
+  --output test.mp3</code></pre>
+
+                <h3>Step 9: Verify Output</h3>
+                <ol>
+                    <li>Check if <code>test.mp3</code> is in the Voicebox processing queue</li>
+                    <li>Open <code>test.mp3</code> in your file explorer</li>
+                    <li>Confirm the audio plays normally</li>
+                </ol>
+
+                <div class="success">
+                    <strong>✅ Success Sign</strong>
+                    If the generated MP3 file plays normally, the entire setup is configured correctly.
+                </div>
+
+                <hr class="divider">
+
+                <h2>Phase 6: Optional - Auto-startup</h2>
+
+                <h3>Step 10: Create Startup Script</h3>
+                <p>Create a file named <code>start_tts.bat</code>:</p>
+                <pre><code>@echo off
+echo Starting Voicebox + Proxy...
+
+:: Change this to your Voicebox.exe full path
+start "" /min "D:\Voicebox\Voicebox.exe"
+
+timeout /t 8 >nul     :: Wait 8 seconds for Voicebox to fully start
+
+:: Change this to your voicebox_proxy.py full path
+start "" /min cmd /c "python D:\tts\voicebox_proxy.py"
+
+echo Startup complete! (Window will minimize automatically)</code></pre>
+
+                <div class="note">
+                    <strong>📝 Path Modification</strong>
+                    Modify according to your actual installation location:
+                    <ul>
+                        <li><code>D:\Voicebox\Voicebox.exe</code> → Your Voicebox application path</li>
+                        <li><code>D:\tts\voicebox_proxy.py</code> → Your proxy script path</li>
+                    </ul>
+                </div>
+
+                <h3>Step 11: Add to System Startup</h3>
+                <ol>
+                    <li>Press <code>Win + R</code> to open the Run dialog</li>
+                    <li>Type <code>shell:startup</code> and press Enter (opens the Startup folder)</li>
+                    <li>Drag or copy <code>start_tts.bat</code> into this folder</li>
+                </ol>
+
+                <p style="margin-top: 15px;"><strong>✅ Done!</strong> After system restart, Voicebox and the proxy service will start automatically.</p>
+
+                <hr class="divider">
+
+                <h2>Troubleshooting</h2>
+                <table>
+                    <tr>
+                        <th>Problem</th>
+                        <th>Solution</th>
+                    </tr>
+                    <tr>
+                        <td>Proxy cannot connect to Voicebox</td>
+                        <td>Check if Voicebox is running, confirm port 17493 is accessible</td>
+                    </tr>
+                    <tr>
+                        <td>Poor audio quality</td>
+                        <td>Re-clone the voice in Voicebox, ensure input audio is clear</td>
+                    </tr>
+                    <tr>
+                        <td>OpenClaw not generating voice</td>
+                        <td>Run the test curl command, check if proxy is responding correctly</td>
+                    </tr>
+                    <tr>
+                        <td>Startup script fails</td>
+                        <td>Check if paths are correct, ensure Python environment is available</td>
+                    </tr>
+                </table>
+
+                <h2>Related Links</h2>
+                <ul>
+                    <li>🔗 <a href="https://github.com/jamiepine/voicebox" target="_blank">Voicebox GitHub</a></li>
+                    <li>🔗 <a href="https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base/tree/main" target="_blank">Hugging Face TTS Model</a></li>
+                    <li>🔗 <a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI Documentation</a></li>
+                    <li>🔗 <a href="https://www.fish-audio.com/" target="_blank">Fish Audio</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>✨ OpenClaw + Voicebox Local TTS Configuration Tutorial | 作者: nnokon | 最后更新: 2026-03-22</p>
+        </footer>
+    </div>
+
+    <script>
+        // 语言切换功能
+        const langButtons = document.querySelectorAll('.lang-btn');
+        const zhContent = document.getElementById('zh-content');
+        const enContent = document.getElementById('en-content');
+        const mainTitle = document.getElementById('main-title');
+
+        langButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // 移除所有按钮的 active 类
+                langButtons.forEach(btn => btn.classList.remove('active'));
+                // 给点击的按钮添加 active 类
+                button.classList.add('active');
+
+                // 获取选中的语言
+                const lang = button.getAttribute('data-lang');
+
+                if (lang === 'zh') {
+                    zhContent.classList.add('active');
+                    enContent.classList.remove('active');
+                    mainTitle.textContent = 'OpenClaw + Voicebox 本地 TTS 配置教程';
+                    document.documentElement.lang = 'zh-CN';
+                } else {
+                    zhContent.classList.remove('active');
+                    enContent.classList.add('active');
+                    mainTitle.textContent = 'OpenClaw + Voicebox Local TTS Configuration Tutorial';
+                    document.documentElement.lang = 'en-US';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
