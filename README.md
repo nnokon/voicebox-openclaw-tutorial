@@ -14,7 +14,7 @@ Complete guide for configuring OpenClaw with local AI voice (TTS) functionality,
 ## 🚀 Quick Start
 
 1. Download [Voicebox](https://github.com/jamiepine/voicebox)
-2. Download Qwen TTS model from [Hugging Face](https://huggingface.co)
+2. Download Qwen TTS model from [Hugging Face](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base/tree/main)
 3. Follow the steps in `TUTORIAL_EN.md`
 
 ## 📖 English Tutorial
@@ -66,7 +66,7 @@ OpenClaw + Voicebox 本地 TTS 配置教程
 ## 🚀 快速开始
 
 1. 下载 [Voicebox](https://github.com/jamiepine/voicebox)
-2. 从 [Hugging Face](https://huggingface.co) 下载 Qwen TTS 模型
+2. 从 [Hugging Face](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base/tree/main) 下载 Qwen TTS 模型
 3. 按照 `TUTORIAL_ZH.md` 中的步骤进行配置
 
 ## 📖 中文详细教程

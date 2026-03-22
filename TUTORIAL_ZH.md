@@ -29,7 +29,7 @@ tags:
 
 ### 第2步：下载 TTS 模型
 
-从 [Hugging Face](https://huggingface.co) 手动下载 Qwen 的 TTS 模型。
+从 [Hugging Face](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base/tree/main) 手动下载 Qwen 的 TTS 模型。
 
 ### 第3步：配置 Voicebox 启动参数
 

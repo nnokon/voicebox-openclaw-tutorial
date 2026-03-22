@@ -30,7 +30,7 @@ Visit [Voicebox GitHub](https://github.com/jamiepine/voicebox) to download the l
 
 ### Step 2: Download TTS Model
 
-Download Qwen's TTS model manually from [Hugging Face](https://huggingface.co).
+Download Qwen's TTS model manually from [Hugging Face](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base/tree/main).
 
 ### Step 3: Configure Voicebox Startup Parameters
 
